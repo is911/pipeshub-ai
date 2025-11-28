@@ -38,6 +38,8 @@ from app.services.vector_db.interface.vector_db import IVectorDBService
 from app.services.vector_db.vector_db_factory import VectorDBFactory
 from app.utils.logger import create_logger
 from app.utils.redis_util import build_redis_url
+from app.utils.reranker import get_reranker
+from app.modules.reranker.reranker import BaseRerankerService
 
 
 # Note - Cannot make this a singleton as it is used in the container and DI does not work with static methods
@@ -257,3 +259,11 @@ class ContainerUtils:
         else:
             print("Creating EnvFileProvider")
             return FeatureFlagService.get_service()
+
+    async def create_reranker_service(
+        self,
+        config_service: ConfigurationService,
+    ) -> BaseRerankerService:
+        """Async factory for RerankerService that loads config from etcd"""
+        reranker_service, _ = await get_reranker(config_service)
+        return reranker_service

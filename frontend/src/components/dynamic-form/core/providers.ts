@@ -229,6 +229,7 @@ export const LLM_PROVIDERS: readonly ProviderConfig[] = [
       { name: 'contextLength', required: false, defaultValue: undefined },
       { name: 'isMultimodal', required: false, defaultValue: true },
       { name: 'isReasoning', required: false, defaultValue: false },
+      { name: 'maxThinkingTokens', required: false, defaultValue: 2048 },
     ],
     customFields: {
       endpoint: {
@@ -385,6 +386,47 @@ export const EMBEDDING_PROVIDERS: readonly ProviderConfig[] = [
         placeholder: 'e.g., https://api.openai.com/v1',
       },
     },
+  },
+] as const;
+
+// RERANKER PROVIDERS
+export const RERANKER_PROVIDERS: readonly ProviderConfig[] = [
+  {
+    id: 'local',
+    label: 'Local (Cross-Encoder)',
+    description: 'Use local cross-encoder models for reranking. Runs on your hardware (GPU/CPU).',
+    modelPlaceholder: 'e.g., BAAI/bge-reranker-base, cross-encoder/ms-marco-MiniLM-L-6-v2',
+    fields: ['model'],
+  },
+  {
+    id: 'voyage',
+    label: 'Voyage AI',
+    description: 'Enter your Voyage AI API credentials for reranking.',
+    modelPlaceholder: 'e.g., rerank-2.5, rerank-2.5-lite',
+    fields: [
+      { name: 'apiKey', required: true },
+      { name: 'model', required: true },
+    ],
+  },
+  {
+    id: 'cohere',
+    label: 'Cohere',
+    description: 'Enter your Cohere API credentials for reranking.',
+    modelPlaceholder: 'e.g., rerank-v3.5, rerank-english-v3.0, rerank-multilingual-v3.0',
+    fields: [
+      { name: 'apiKey', required: true },
+      { name: 'model', required: true },
+    ],
+  },
+  {
+    id: 'jinaAI',
+    label: 'Jina AI',
+    description: 'Enter your Jina AI API credentials for reranking.',
+    modelPlaceholder: 'e.g., jina-reranker-v2-base-multilingual',
+    fields: [
+      { name: 'apiKey', required: true },
+      { name: 'model', required: true },
+    ],
   },
 ] as const;
 

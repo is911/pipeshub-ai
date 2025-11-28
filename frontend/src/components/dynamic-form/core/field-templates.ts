@@ -190,6 +190,18 @@ export const FIELD_TEMPLATES = {
     gridSize: { xs: 12, sm: 6 },
   },
 
+  maxThinkingTokens: {
+    name: 'maxThinkingTokens',
+    label: 'Max Thinking Tokens',
+    type: 'number' as const,
+    placeholder: 'Maximum tokens for extended thinking (e.g., 2048)',
+    icon: brainIcon,
+    required: false,
+    validation: z.number().int().min(1).max(128000).optional().default(2048),
+    gridSize: { xs: 12, sm: 6 },
+    showWhen: { field: 'isReasoning', value: true },
+  },
+
   // URL FIELDS
   frontendUrl: {
     name: 'frontendUrl',

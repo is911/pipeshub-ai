@@ -4,7 +4,6 @@ from app.config.configuration_service import ConfigurationService
 from app.config.providers.etcd.etcd3_encrypted_store import Etcd3EncryptedKeyValueStore
 from app.containers.container import BaseAppContainer
 from app.containers.utils.utils import ContainerUtils
-from app.modules.reranker.reranker import RerankerService
 from app.utils.logger import create_logger
 
 
@@ -54,9 +53,10 @@ class QueryAppContainer(BaseAppContainer):
         arango_service=arango_service,
         blob_store=blob_store,
     )
-    reranker_service = providers.Singleton(
-        RerankerService,
-        model_name="BAAI/bge-reranker-base",  # Choose model based on speed/accuracy needs
+    # Reranker service - loads configuration from etcd (defaults to local BAAI/bge-reranker-base if not configured)
+    reranker_service = providers.Resource(
+        container_utils.create_reranker_service,
+        config_service=config_service,
     )
 
     # Query-specific wiring configuration

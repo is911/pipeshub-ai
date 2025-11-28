@@ -240,6 +240,26 @@ docker compose -f docker-compose.dev.yml -p pipeshub-ai up --build -d
 docker compose -f docker-compose.dev.yml -p pipeshub-ai down
 ```
 
+### 📦 Local Development Build (From Source)
+
+Use this when you've made local code changes and want to build and test them:
+
+```bash
+# 📁 Navigate to the deployment folder
+cd pipeshub-ai/deployment/docker-compose
+
+# 🚀 Build and start from local source code
+docker compose -f docker-compose.local.yml -p pipeshub-ai-local up --build
+
+# 🔄 Rebuild after making code changes
+docker compose -f docker-compose.local.yml -p pipeshub-ai-local up --build --force-recreate
+
+# 🛑 To stop the services
+docker compose -f docker-compose.local.yml -p pipeshub-ai-local down
+```
+
+> **Note:** The local build uses `LOG_LEVEL=debug` by default and tags the image as `pipeshub-ai:local` to avoid conflicts with dev/prod images.
+
 ## 👥 Contributing
 
 Want to join our community of developers? Please check out our [Contributing Guide](https://github.com/pipeshub-ai/pipeshub-ai/blob/main/CONTRIBUTING.md) for more details on how to set up the development environment, our coding standards, and the contribution workflow.
