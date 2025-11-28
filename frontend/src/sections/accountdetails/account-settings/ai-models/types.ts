@@ -1,4 +1,4 @@
-export type ModelType = 'llm' | 'embedding';
+export type ModelType = 'llm' | 'embedding' | 'reranker';
 export type ProviderId = string;
 
 export interface ConfiguredModel {
@@ -76,9 +76,9 @@ export const AVAILABLE_MODEL_PROVIDERS: ModelProvider[] = [
   {
     id: 'cohere',
     name: 'Cohere',
-    description: 'Command models for text generation and embeddings',
+    description: 'Command models for text generation, embeddings, and reranking',
     src: '/assets/icons/ai-models/cohere-color.svg',
-    supportedTypes: ['llm', 'embedding'],
+    supportedTypes: ['llm', 'embedding', 'reranker'],
     color: '#39C5BB',
   },
   {
@@ -166,17 +166,17 @@ export const AVAILABLE_MODEL_PROVIDERS: ModelProvider[] = [
   {
     id: 'jinaAI',
     name: 'Jina AI',
-    description: 'Jina AI models',
+    description: 'Jina AI models for embeddings and reranking',
     src: '/assets/icons/ai-models/jina.svg',
-    supportedTypes: ['embedding'],
+    supportedTypes: ['embedding', 'reranker'],
     color: '#0078D4',
   },
   {
     id: 'voyage',
     name: 'Voyage',
-    description: 'Voyage models',
+    description: 'Voyage models for embeddings and reranking',
     src: '/assets/icons/ai-models/voyage-color.svg',
-    supportedTypes: ['embedding'],
+    supportedTypes: ['embedding', 'reranker'],
     color: '#0078D4',
   },
   {
@@ -186,6 +186,14 @@ export const AVAILABLE_MODEL_PROVIDERS: ModelProvider[] = [
     supportedTypes: ['embedding'],
     src: '/assets/icons/ai-models/huggingface-color.svg',
     color: '#FFD21E',
+  },
+  {
+    id: 'local',
+    name: 'Local (Cross-Encoder)',
+    description: 'Local cross-encoder models for reranking (no API key required)',
+    supportedTypes: ['reranker'],
+    src: '/assets/icons/ai-models/sentence-transformers.png',
+    color: '#4A90E2',
   },
 ];
 
@@ -201,6 +209,12 @@ export const MODEL_TYPE_CONFIGS = {
     description: 'Text vectorization for semantic search',
     icon: 'mdi:magnify',
     color: '#9C27B0',
+  },
+  reranker: {
+    name: 'Reranker Models',
+    description: 'Re-rank search results for improved relevance',
+    icon: 'mdi:sort-variant',
+    color: '#FF9800',
   },
 };
 

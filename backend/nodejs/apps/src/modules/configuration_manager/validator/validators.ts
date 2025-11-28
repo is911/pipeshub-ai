@@ -390,7 +390,8 @@ export const metricsCollectionRemoteServerSchema = z.object({
 // Enum definitions
 export const modelType = z.enum([
   'llm',
-  'embedding', 
+  'embedding',
+  'reranker',
   'ocr',
   'slm',
   'reasoning',
@@ -441,8 +442,15 @@ export const ocrProvider = z.enum([
   'ocrmypdf'
 ]);
 
-// Combined provider type that accepts embedding, LLM, and OCR providers
-export const providerType = z.union([embeddingProvider, llmProvider, ocrProvider]);
+export const rerankerProvider = z.enum([
+  'local',
+  'voyage',
+  'cohere',
+  'jinaAI'
+]);
+
+// Combined provider type that accepts embedding, LLM, OCR, and reranker providers
+export const providerType = z.union([embeddingProvider, llmProvider, ocrProvider, rerankerProvider]);
 
 // Model Configuration schema
 export const configurationSchema = z.object({
@@ -457,7 +465,8 @@ export const configurationSchema = z.object({
   region: z.string().optional().describe("AWS region"),
   model_kwargs: z.record(z.any()).optional().describe("Additional model kwargs"),
   encode_kwargs: z.record(z.any()).optional().describe("Additional encoding kwargs"),
-  cache_folder: z.string().optional().describe("Cache folder for models")
+  cache_folder: z.string().optional().describe("Cache folder for models"),
+  maxThinkingTokens: z.number().int().min(1).max(128000).optional().default(2048).describe("Maximum tokens for extended thinking (reasoning models)")
 });
 
 // Add Provider Request schema
@@ -503,13 +512,14 @@ export const aiModelsConfigSchema = z.object({
     .object({
       ocr: z.array(modelConfigurationSchema).optional(),
       embedding: z.array(modelConfigurationSchema).optional(),
+      reranker: z.array(modelConfigurationSchema).optional(),
       slm: z.array(modelConfigurationSchema).optional(),
       llm: z.array(modelConfigurationSchema).optional(),
       reasoning: z.array(modelConfigurationSchema).optional(),
       multiModal: z.array(modelConfigurationSchema).optional(),
     })
     .strict({
-      message: 'ai models can be ocr, embedding, llm, slm, reasoning, multimodal',
+      message: 'ai models can be ocr, embedding, reranker, llm, slm, reasoning, multimodal',
     })
     .refine(
       (data) => {
@@ -531,6 +541,7 @@ export const modelTypeSchema = z.object({
     modelType: z.enum([
       'ocr',
       'embedding',
+      'reranker',
       'llm',
       'slm',
       'reasoning',
@@ -544,6 +555,7 @@ export const updateDefaultModelSchema = z.object({
     modelType: z.enum([
       'ocr',
       'embedding',
+      'reranker',
       'llm',
       'slm',
       'reasoning',
@@ -558,6 +570,7 @@ export const deleteProviderSchema = z.object({
     modelType: z.enum([
       'ocr',
       'embedding',
+      'reranker',
       'llm',
       'slm',
       'reasoning',

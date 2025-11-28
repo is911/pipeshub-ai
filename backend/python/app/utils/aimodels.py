@@ -17,6 +17,7 @@ from app.utils.logger import create_logger
 class ModelType(str, Enum):
     LLM = "llm"
     EMBEDDING = "embedding"
+    RERANKER = "reranker"
     OCR = "ocr"
     SLM = "slm"
     REASONING = "reasoning"
@@ -58,6 +59,12 @@ class LLMProvider(Enum):
     TOGETHER = "together"
     VERTEX_AI = "vertexAI"
     XAI = "xai"
+
+class RerankerProvider(Enum):
+    LOCAL = "local"
+    VOYAGE = "voyage"
+    COHERE = "cohere"
+    JINA_AI = "jinaAI"
 
 MAX_OUTPUT_TOKENS = 16000
 MAX_OUTPUT_TOKENS_CLAUDE_4_5 = 64000
@@ -442,14 +449,23 @@ def get_generator_model(provider: str, config: Dict[str, Any], model_name: str |
 
     elif provider == LLMProvider.OPENAI_COMPATIBLE.value:
         from langchain_openai import ChatOpenAI
-        is_reasoning_model = "gpt-5" in model_name or config.get("isReasoning", False)
+
+        is_reasoning_model = "gpt-5" in model_name or configuration.get("isReasoning", False)
         temperature = 1 if is_reasoning_model else configuration.get("temperature", 0.2)
+        max_thinking_tokens = configuration.get("maxThinkingTokens", 2048)
+
+        # Build model_kwargs for reasoning models (e.g., Claude with extended thinking)
+        model_kwargs = {}
+        if is_reasoning_model and max_thinking_tokens:
+            model_kwargs["max_thinking_tokens"] = max_thinking_tokens
+
         return ChatOpenAI(
                 model=model_name,
                 temperature=temperature,
                 timeout=DEFAULT_LLM_TIMEOUT,  # 6 minute timeout
                 api_key=configuration["apiKey"],
                 base_url=configuration["endpoint"],
+                model_kwargs=model_kwargs,
             )
 
     raise ValueError(f"Unsupported provider type: {provider}")

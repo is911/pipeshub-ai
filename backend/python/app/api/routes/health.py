@@ -14,6 +14,7 @@ from app.utils.aimodels import (
     get_embedding_model,
     get_generator_model,
 )
+from app.modules.reranker.reranker import get_reranker_service
 from app.utils.llm import get_llm
 from app.utils.time_conversion import get_epoch_timestamp_in_ms
 
@@ -589,6 +590,106 @@ async def perform_embedding_health_check(
         )
 
 
+async def perform_reranker_health_check(
+    reranker_config: dict,
+    logger: Logger,
+) -> JSONResponse:
+    """Perform health check for reranker models"""
+    try:
+        provider = reranker_config.get("provider")
+        configuration = reranker_config.get("configuration", {})
+        model_name = configuration.get("model", "")
+
+        logger.info(f"Performing reranker health check for provider={provider}, model={model_name}")
+
+        # Create reranker service
+        reranker_service = get_reranker_service(provider, reranker_config)
+
+        # Test with sample query and documents
+        test_query = "What is machine learning?"
+        test_documents = [
+            {"content": "Machine learning is a subset of artificial intelligence.", "score": 0.8},
+            {"content": "Python is a programming language.", "score": 0.6},
+            {"content": "Deep learning uses neural networks for complex tasks.", "score": 0.7},
+        ]
+
+        try:
+            # Set timeout for the test
+            reranked_results = await asyncio.wait_for(
+                reranker_service.rerank(test_query, test_documents, top_k=3),
+                timeout=60.0  # 60 second timeout
+            )
+
+            if not reranked_results:
+                logger.error(f"Reranker returned empty results for provider={provider}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "status": "error",
+                        "message": "Reranker returned empty results",
+                        "details": {
+                            "provider": provider,
+                            "model": model_name,
+                        },
+                    },
+                )
+
+            # Verify that scores were added
+            first_result = reranked_results[0]
+            if "reranker_score" not in first_result or "final_score" not in first_result:
+                logger.error(f"Reranker did not add scores for provider={provider}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "status": "error",
+                        "message": "Reranker did not compute scores correctly",
+                        "details": {
+                            "provider": provider,
+                            "model": model_name,
+                        },
+                    },
+                )
+
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "status": "healthy",
+                    "message": f"Reranker is responding. Top result score: {first_result.get('final_score', 0):.4f}",
+                    "timestamp": get_epoch_timestamp_in_ms(),
+                },
+            )
+
+        except asyncio.TimeoutError:
+            logger.error(f"Reranker health check timed out for provider={provider}")
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "status": "error",
+                    "message": "Reranker health check timed out",
+                    "details": {
+                        "provider": provider,
+                        "model": model_name,
+                        "timeout_seconds": 60,
+                    },
+                },
+            )
+
+    except Exception as e:
+        logger.error(f"Reranker health check failed for provider={reranker_config.get('provider')}: {str(e)}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "message": f"Reranker health check failed: {str(e)}",
+                "details": {
+                    "provider": reranker_config.get("provider"),
+                    "model": reranker_config.get("configuration", {}).get("model"),
+                    "error_type": type(e).__name__,
+                },
+            },
+        )
+
+
 @router.post("/health-check/{model_type}")
 async def health_check(request: Request, model_type: str, model_config: dict = Body(...)) -> JSONResponse:
     """Health check endpoint to validate the health of the application."""
@@ -605,6 +706,10 @@ async def health_check(request: Request, model_type: str, model_config: dict = B
         elif model_type == "llm":
             logger.info(f"Performing LLM health check for {model_config.get('provider')} with configuration model {model_config.get('configuration', {}).get('model', '')}")
             return await perform_llm_health_check(model_config, logger)
+
+        elif model_type == "reranker":
+            logger.info(f"Performing reranker health check for {model_config.get('provider')} with configuration {model_config.get('configuration')}")
+            return await perform_reranker_health_check(model_config, logger)
 
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}", exc_info=True)

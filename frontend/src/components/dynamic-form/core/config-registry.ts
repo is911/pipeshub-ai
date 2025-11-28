@@ -1,15 +1,16 @@
 import { DynamicConfigFactory, GeneratedProvider } from "./config-factory";
-import { EMBEDDING_PROVIDERS, LLM_PROVIDERS, SMTP_PROVIDERS, STORAGE_PROVIDERS, URL_PROVIDERS } from "./providers";
+import { EMBEDDING_PROVIDERS, LLM_PROVIDERS, RERANKER_PROVIDERS, SMTP_PROVIDERS, STORAGE_PROVIDERS, URL_PROVIDERS } from "./providers";
 
 // AUTO-GENERATED CONFIGS
 export const LLM_CONFIG = DynamicConfigFactory.generateConfigType(LLM_PROVIDERS);
 export const EMBEDDING_CONFIG = DynamicConfigFactory.generateConfigType(EMBEDDING_PROVIDERS);
+export const RERANKER_CONFIG = DynamicConfigFactory.generateConfigType(RERANKER_PROVIDERS);
 export const STORAGE_CONFIG = DynamicConfigFactory.generateConfigType(STORAGE_PROVIDERS);
 export const SMTP_CONFIG = DynamicConfigFactory.generateConfigType(SMTP_PROVIDERS);
 export const URL_CONFIG = DynamicConfigFactory.generateConfigType(URL_PROVIDERS);
 
 // UNIFIED CONFIG TYPE
-export type ConfigType = 'llm' | 'embedding' | 'storage' | 'url' | 'smtp';
+export type ConfigType = 'llm' | 'embedding' | 'reranker' | 'storage' | 'url' | 'smtp';
 
 // HELPER FUNCTIONS
 export const getProvidersForType = (configType: ConfigType): GeneratedProvider[] => {
@@ -18,6 +19,8 @@ export const getProvidersForType = (configType: ConfigType): GeneratedProvider[]
       return LLM_CONFIG;
     case 'embedding':
       return EMBEDDING_CONFIG;
+    case 'reranker':
+      return RERANKER_CONFIG;
     case 'storage':
       return STORAGE_CONFIG;
     case 'url':
@@ -50,3 +53,6 @@ export const getUrlProviderById = (id: string) => getProviderById('url', id);
 
 export const getSmtpProviders = () => SMTP_CONFIG;
 export const getSmtpProviderById = (id: string) => getProviderById('smtp', id);
+
+export const getRerankerProviders = () => RERANKER_CONFIG;
+export const getRerankerProviderById = (id: string) => getProviderById('reranker', id);

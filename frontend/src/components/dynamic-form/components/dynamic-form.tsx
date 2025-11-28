@@ -50,7 +50,7 @@ interface DynamicFormProps {
   initialProvider?: string; // Initial provider selection
 
   // Legacy support (backward compatibility)
-  modelType?: 'llm' | 'embedding'; // Deprecated: Use configType instead
+  modelType?: 'llm' | 'embedding' | 'reranker'; // Deprecated: Use configType instead
 }
 
 interface SaveResult {
@@ -193,7 +193,7 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
       if (isSwitchingProvider) return () => {};
 
       const handler = setTimeout(() => {
-        const isLegacyModelType = ['llm', 'embedding'].includes(finalConfigType);
+        const isLegacyModelType = ['llm', 'embedding', 'reranker'].includes(finalConfigType);
         const shouldReportValid = isLegacyModelType
           ? isValid && isEditing && !isSwitchingProvider
           : isRequired
@@ -311,7 +311,7 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
         return await new Promise<SaveResult>((resolve) => {
           handleSubmit(async (data: any) => {
             try {
-              const isLegacyModelType = ['llm', 'embedding'].includes(finalConfigType);
+              const isLegacyModelType = ['llm', 'embedding', 'reranker'].includes(finalConfigType);
               const saveData = {
                 ...data,
                 [isLegacyModelType ? 'modelType' : 'providerType']: currentProvider,
@@ -365,7 +365,7 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
 
       getFormData: async (): Promise<any> => {
         const formData = getValues();
-        const isLegacyModelType = ['llm', 'embedding'].includes(finalConfigType);
+        const isLegacyModelType = ['llm', 'embedding', 'reranker'].includes(finalConfigType);
         return {
           ...formData,
           [isLegacyModelType ? 'modelType' : 'providerType']: currentProvider,
@@ -513,7 +513,7 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
       setSaveError(null);
       setFormSubmitSuccess(false);
 
-      const isLegacyModelType = ['llm', 'embedding'].includes(finalConfigType);
+      const isLegacyModelType = ['llm', 'embedding', 'reranker'].includes(finalConfigType);
       if (isLegacyModelType && originalApiConfigRef.current) {
         // For legacy model types, reset to the original configuration
         const originalProvider =
@@ -555,6 +555,9 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
     }
   };
 
+  // Get current form values for conditional rendering
+  const watchedValues = watch();
+
   // Render form fields
   const renderFieldStructure = () => {
     if (!providerConfig) {
@@ -591,6 +594,15 @@ const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>((props, ref) =>
     }
 
     return fieldsToRender.map((field: any) => {
+      // Check conditional rendering (showWhen)
+      if (field.showWhen) {
+        const { field: dependentField, value: expectedValue } = field.showWhen;
+        const currentValue = watchedValues[dependentField];
+        if (currentValue !== expectedValue) {
+          return null; // Don't render this field if condition is not met
+        }
+      }
+
       const gridSize = field.gridSize || {
         xs: 12,
         md: 6,
