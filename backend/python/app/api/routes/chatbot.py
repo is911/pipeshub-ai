@@ -65,7 +65,7 @@ async def get_config_service(request: Request) -> ConfigurationService:
 
 async def get_reranker_service(request: Request) -> RerankerService:
     container: QueryAppContainer = request.app.container
-    reranker_service = container.reranker_service()
+    reranker_service = await container.reranker_service()
     return reranker_service
 
 

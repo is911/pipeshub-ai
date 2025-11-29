@@ -65,6 +65,7 @@ const ConfiguredModelsDisplay: React.FC<ConfiguredModelsDisplayProps> = ({
   const [expandedTypes, setExpandedTypes] = useState<{ [key: string]: boolean }>({
     llm: true,
     embedding: true,
+    reranker: true,
   });
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedModel, setSelectedModel] = useState<ConfiguredModel | null>(null);
@@ -72,7 +73,7 @@ const ConfiguredModelsDisplay: React.FC<ConfiguredModelsDisplayProps> = ({
   const [modelToDelete, setModelToDelete] = useState<ConfiguredModel | null>(null);
   const [isPerformingAction, setIsPerformingAction] = useState(false);
 
-  const modelTypes: ModelType[] = ['llm', 'embedding'];
+  const modelTypes: ModelType[] = ['llm', 'embedding', 'reranker'];
 
   const handleAccordionChange =
     (type: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
@@ -146,6 +147,12 @@ const ConfiguredModelsDisplay: React.FC<ConfiguredModelsDisplayProps> = ({
         icon: embeddingIcon,
         color: '#7c3aed',
         description: 'Vectorization for semantic search',
+      },
+      reranker: {
+        name: 'Reranker Models',
+        icon: 'mdi:sort-variant',
+        color: '#FF9800',
+        description: 'Re-rank search results for improved relevance',
       },
     })[type] || {
       name: type,
@@ -539,7 +546,9 @@ const ConfiguredModelsDisplay: React.FC<ConfiguredModelsDisplayProps> = ({
                   icon={
                     modelToDelete.modelType === 'llm'
                       ? robotIcon
-                      : magnifyIcon
+                      : modelToDelete.modelType === 'reranker'
+                        ? 'mdi:sort-variant'
+                        : magnifyIcon
                   }
                   width={16}
                   height={16}

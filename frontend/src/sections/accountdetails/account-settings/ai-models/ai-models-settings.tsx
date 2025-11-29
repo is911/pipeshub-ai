@@ -45,7 +45,7 @@ const AiModelsSettings: React.FC = () => {
     llm: [],
     embedding: []
   });
-  const [configuredProviders, setConfiguredProviders] = useState<{ [key: string]: { llm: number; embedding: number } }>({});
+  const [configuredProviders, setConfiguredProviders] = useState<{ [key: string]: { llm: number; embedding: number; reranker: number } }>({});
   const [selectedProvider, setSelectedProvider] = useState<(ModelProvider & { 
     editingModel?: ConfiguredModel;
     targetModelType?: ModelType;
@@ -65,24 +65,26 @@ const AiModelsSettings: React.FC = () => {
     }
     
     try {
-      const [llmModels, embeddingModels] = await Promise.all([
+      const [llmModels, embeddingModels, rerankerModels] = await Promise.all([
         modelService.getAllModels('llm'),
-        modelService.getAllModels('embedding')
+        modelService.getAllModels('embedding'),
+        modelService.getAllModels('reranker')
       ]);
 
       setConfiguredModels({
         llm: llmModels,
-        embedding: embeddingModels
+        embedding: embeddingModels,
+        reranker: rerankerModels
       });
 
       // Calculate provider counts
-      const providerCounts: { [key: string]: { llm: number; embedding: number } } = {};
-      
-      [...llmModels, ...embeddingModels].forEach(model => {
+      const providerCounts: { [key: string]: { llm: number; embedding: number; reranker: number } } = {};
+
+      [...llmModels, ...embeddingModels, ...rerankerModels].forEach(model => {
         if (!providerCounts[model.provider]) {
-          providerCounts[model.provider] = { llm: 0, embedding: 0 };
+          providerCounts[model.provider] = { llm: 0, embedding: 0, reranker: 0 };
         }
-        providerCounts[model.provider][model.modelType]+=1;
+        providerCounts[model.provider][model.modelType as 'llm' | 'embedding' | 'reranker'] += 1;
       });
 
       setConfiguredProviders(providerCounts);
@@ -181,6 +183,7 @@ const AiModelsSettings: React.FC = () => {
   const totalModels = Object.values(configuredModels).reduce((sum, models) => sum + models.length, 0);
   const totalLLM = configuredModels.llm?.length || 0;
   const totalEmbedding = configuredModels.embedding?.length || 0;
+  const totalReranker = (configuredModels as any).reranker?.length || 0;
 
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
@@ -308,6 +311,21 @@ const AiModelsSettings: React.FC = () => {
                           backgroundColor: isDark ? alpha(theme.palette.info.main, 0.8) : alpha(theme.palette.info.main, 0.1),
                           color: isDark ? theme.palette.info.contrastText : theme.palette.info.main,
                           border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                        }}
+                      />
+                    )}
+                    {totalReranker > 0 && (
+                      <Chip
+                        icon={<Iconify icon={embeddingIcon} width={14} height={14} />}
+                        label={`${totalReranker} Reranker`}
+                        size="small"
+                        sx={{
+                          height: 28,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          backgroundColor: isDark ? alpha(theme.palette.warning.main, 0.8) : alpha(theme.palette.warning.main, 0.1),
+                          color: isDark ? theme.palette.warning.contrastText : theme.palette.warning.main,
+                          border: `1px solid ${alpha(theme.palette.warning.main, 0.2)}`,
                         }}
                       />
                     )}

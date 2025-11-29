@@ -37,7 +37,7 @@ async def get_services(request: Request) -> Dict[str, Any]:
     # Get services
     retrieval_service = await container.retrieval_service()
     arango_service = await container.arango_service()
-    reranker_service = container.reranker_service()
+    reranker_service = await container.reranker_service()
     config_service = container.config_service()
     logger = container.logger()
 

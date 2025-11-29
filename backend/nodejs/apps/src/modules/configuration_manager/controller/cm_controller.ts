@@ -2268,6 +2268,7 @@ export const getAIModelsProviders =
         llm: [],
         reasoning: [],
         multiModal: [],
+        reranker: [],
       };
 
       for (const key of Object.keys(defaultStructure)) {
@@ -2306,6 +2307,7 @@ export const getModelsByType =
         'slm',
         'reasoning',
         'multiModal',
+        'reranker',
       ];
       if (!validTypes.includes(modelType)) {
         res.status(400).json({
@@ -2375,6 +2377,7 @@ export const getAvailableModelsByType =
         'slm',
         'reasoning',
         'multiModal',
+        'reranker',
       ];
       if (!validTypes.includes(modelType)) {
         res.status(400).json({
@@ -2497,6 +2500,7 @@ export const addAIModelProvider =
         'slm',
         'reasoning',
         'multiModal',
+        'reranker',
       ];
       if (!validTypes.includes(modelType)) {
         res.status(400).json({
@@ -2569,6 +2573,7 @@ export const addAIModelProvider =
         llm: [],
         reasoning: [],
         multiModal: [],
+        reranker: [],
       };
       for (const key of Object.keys(defaultStructure)) {
         if (!(key in aiModels)) {

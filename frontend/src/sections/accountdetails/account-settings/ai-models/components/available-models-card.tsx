@@ -27,7 +27,7 @@ import { AVAILABLE_MODEL_PROVIDERS, ModelProvider, ModelType } from '../types';
 
 interface ProviderCardsProps {
   onProviderSelect: (provider: ModelProvider, modelType?: ModelType) => void;
-  configuredProviders: { [key: string]: { llm: number; embedding: number } };
+  configuredProviders: { [key: string]: { llm: number; embedding: number; reranker: number } };
 }
 
 // Compact capabilities mapping - only show most important ones
@@ -37,7 +37,7 @@ const PROVIDER_CAPABILITIES = {
   gemini: ['CHAT', 'EMBEDDING'],
   azureAI: ['CHAT', 'EMBEDDING'],
   azureOpenAI: ['CHAT', 'EMBEDDING'],
-  cohere: ['CHAT', 'EMBEDDING'],
+  cohere: ['CHAT', 'EMBEDDING', 'RERANKER'],
   ollama: ['CHAT', 'EMBEDDING'],
   mistral: ['CHAT'],
   huggingFace: ['EMBEDDING'],
@@ -48,8 +48,9 @@ const PROVIDER_CAPABILITIES = {
   openAICompatible: ['CHAT', 'EMBEDDING'],
   bedrock: ['CHAT', 'EMBEDDING'],
   sentenceTransformers: ['EMBEDDING'],
-  jinaAI: ['EMBEDDING'],
-  voyage: ['EMBEDDING'],
+  jinaAI: ['EMBEDDING', 'RERANKER'],
+  voyage: ['EMBEDDING', 'RERANKER'],
+  local: ['RERANKER'],
   default: ['EMBEDDING'],
 } as const;
 
@@ -232,9 +233,11 @@ const ProviderCards: React.FC<ProviderCardsProps> = ({ onProviderSelect, configu
             const configCount = configuredProviders[provider.id];
             const llmCount = configCount?.llm || 0;
             const embeddingCount = configCount?.embedding || 0;
-            const totalConfigured = llmCount + embeddingCount;
+            const rerankerCount = configCount?.reranker || 0;
+            const totalConfigured = llmCount + embeddingCount + rerankerCount;
             const hasLlm = provider.supportedTypes.includes('llm');
             const hasEmbedding = provider.supportedTypes.includes('embedding');
+            const hasReranker = provider.supportedTypes.includes('reranker');
             const capabilities =
               PROVIDER_CAPABILITIES[provider.id as keyof typeof PROVIDER_CAPABILITIES] ||
               provider.supportedTypes.map((type) => type.toUpperCase());
@@ -406,60 +409,91 @@ const ProviderCards: React.FC<ProviderCardsProps> = ({ onProviderSelect, configu
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 0.5,
                         px: 1.5,
                         py: 1,
                         borderRadius: 1,
-                        backgroundColor: isDark 
-                          ? alpha(theme.palette.background.default, 0.3) 
+                        backgroundColor: isDark
+                          ? alpha(theme.palette.background.default, 0.3)
                           : alpha(theme.palette.grey[50], 0.8),
                         border: `1px solid ${theme.palette.divider}`,
                       }}
                     >
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Box
-                          sx={{
-                            width: 4,
-                            height: 4,
-                            borderRadius: '50%',
-                            backgroundColor: llmCount > 0 
-                              ? theme.palette.success.main 
-                              : theme.palette.text.disabled,
-                          }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
-                          {llmCount > 0 ? `${llmCount} LLM` : 'No LLM'}
-                        </Typography>
-                      </Stack>
-                      
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Box
-                          sx={{
-                            width: 4,
-                            height: 4,
-                            borderRadius: '50%',
-                            backgroundColor: embeddingCount > 0 
-                              ? theme.palette.warning.main 
-                              : theme.palette.text.disabled,
-                          }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontSize: '0.75rem',
-                            fontWeight: 500,
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
-                          {embeddingCount > 0 ? `${embeddingCount} Embed` : 'No Embed'}
-                        </Typography>
-                      </Stack>
+                      {hasLlm && (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: '50%',
+                              backgroundColor: llmCount > 0
+                                ? theme.palette.success.main
+                                : theme.palette.text.disabled,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: theme.palette.text.secondary,
+                            }}
+                          >
+                            {llmCount > 0 ? `${llmCount} LLM` : 'No LLM'}
+                          </Typography>
+                        </Stack>
+                      )}
+
+                      {hasEmbedding && (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: '50%',
+                              backgroundColor: embeddingCount > 0
+                                ? theme.palette.warning.main
+                                : theme.palette.text.disabled,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: theme.palette.text.secondary,
+                            }}
+                          >
+                            {embeddingCount > 0 ? `${embeddingCount} Embed` : 'No Embed'}
+                          </Typography>
+                        </Stack>
+                      )}
+
+                      {hasReranker && (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Box
+                            sx={{
+                              width: 4,
+                              height: 4,
+                              borderRadius: '50%',
+                              backgroundColor: rerankerCount > 0
+                                ? theme.palette.info.main
+                                : theme.palette.text.disabled,
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 500,
+                              color: theme.palette.text.secondary,
+                            }}
+                          >
+                            {rerankerCount > 0 ? `${rerankerCount} Rerank` : 'No Rerank'}
+                          </Typography>
+                        </Stack>
+                      )}
                     </Box>
 
                     {/* Action Buttons */}
@@ -493,7 +527,7 @@ const ProviderCards: React.FC<ProviderCardsProps> = ({ onProviderSelect, configu
                       
                       {hasEmbedding && (
                         <Button
-                          fullWidth 
+                          fullWidth
                           variant="outlined"
                           size="medium"
                           startIcon={<Iconify icon={addIcon} width={16} height={16} />}
@@ -515,6 +549,33 @@ const ProviderCards: React.FC<ProviderCardsProps> = ({ onProviderSelect, configu
                           }}
                         >
                           Add Embedding
+                        </Button>
+                      )}
+
+                      {hasReranker && (
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          size="medium"
+                          startIcon={<Iconify icon={addIcon} width={16} height={16} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onProviderSelect(provider, 'reranker');
+                          }}
+                          sx={{
+                            height: 38,
+                            borderRadius: 1.5,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.8125rem',
+                            borderColor: alpha(theme.palette.primary.main, 0.3),
+                            '&:hover': {
+                              borderColor: theme.palette.primary.main,
+                              backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                            },
+                          }}
+                        >
+                          Add Reranker
                         </Button>
                       )}
                     </Stack>
